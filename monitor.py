@@ -1,11 +1,19 @@
 from monitorcontrol import get_monitors
 import customtkinter as ctk
 import pickle
+import os
+from time import sleep
 
 
 class Monitor:
 
+    current_brightness = 0
+    current_contrast = 0
+
     def set_brightness(self, brightness):
+        if brightness == self.current_brightness:
+            return
+        
         if brightness < 0:
             brightness = 0
 
@@ -15,8 +23,12 @@ class Monitor:
         for monitor in get_monitors():
             with monitor:
                 monitor.set_luminance(brightness)
+                self.current_brightness = brightness
         
     def set_contrast(self, contrast):
+        if contrast == self.current_contrast:
+            return
+        
         if contrast < 0:
             contrast = 0
 
@@ -26,6 +38,7 @@ class Monitor:
         for monitor in get_monitors():
             with monitor:
                 monitor.set_contrast(contrast)
+                self.current_contrast = contrast
 
     def set_values(self, brightness=-1, contrast=-1):
 
@@ -40,6 +53,8 @@ class Monitor:
 
         if brightness >= 0:
             self.set_brightness(brightness)
+        
+        sleep(0.2)
         
         if contrast >= 0:
             self.set_contrast(contrast)
@@ -117,18 +132,31 @@ class BrightnessContrastApp:
         self.save_button = ctk.CTkButton(self.root, text="Set all", command=self.save_settings)
         self.save_button.pack(pady=10)
 
+        # presets_frame = ctk.CTkFrame(self.root)
+        # presets_frame.pack(pady=5)
+
+        # preset_buttons = []
+        
+        # for preset in self.presets:
+        #     contrast = preset["contrast"]
+        #     print(contrast)
+
+        #     new_preset_button = ctk.CTkButton(presets_frame, text="Add New Preset", command=self.test(contrast))
+        #     new_preset_button.pack(pady=10)
+        #     preset_buttons.append(new_preset_button)
+
         # Preset field
-        self.preset_label = ctk.CTkLabel(self.root, text="Presets")
-        self.preset_label.pack(pady=5)
+        # self.preset_label = ctk.CTkLabel(self.root, text="Presets")
+        # self.preset_label.pack(pady=5)
 
-        self.preset_listbox = ctk.CTkTextbox(self.root, height=100, width=250, state="normal")
-        self.preset_listbox.pack()
+        # self.preset_listbox = ctk.CTkTextbox(self.root, height=100, width=250, state="normal")
+        # self.preset_listbox.pack()
 
-        self.new_preset_button = ctk.CTkButton(self.root, text="Add New Preset", command=self.add_preset)
-        self.new_preset_button.pack(pady=10)
+        # self.new_preset_button = ctk.CTkButton(self.root, text="Add New Preset", command=self.add_preset)
+        # self.new_preset_button.pack(pady=10)
 
-        self.message_label = ctk.CTkLabel(self.root, text="")
-        self.message_label.pack(pady=5)
+        # self.message_label = ctk.CTkLabel(self.root, text="")
+        # self.message_label.pack(pady=5)
 
 
     def run(self):
@@ -155,7 +183,6 @@ class BrightnessContrastApp:
         brightness = self.brightness_value.get()
         self.config["contrast"] = contrast
         self.config["brightness"] = brightness
-        self.message_label.configure(text=f"Settings Saved! Brightness: {brightness}, Contrast: {contrast}")
         
         self.monitor.set_values(brightness, contrast)
 
@@ -174,8 +201,13 @@ class BrightnessContrastApp:
             pickle.dump(self.config, file)
 
     def retrive_config(self):
-        with open(self.config_file, 'rb') as file:
-            self.config = pickle.load(file)
+
+        if os.path.exists(self.config_file):
+            with open(self.config_file, 'rb') as file:
+                try:
+                    self.config = pickle.load(file)
+                except EOFError:
+                    print("No data in file - using default")
         
         if not self.config.get("position"):
             self.config["position"] = "450x500+900+900"
@@ -186,10 +218,10 @@ class BrightnessContrastApp:
         if not self.config.get("contrast"):
             self.config["contrast"] = 20
         
-        print("retrive_config():")
-        print("Pos: ", self.config["position"])
-        print("Brightness: ", self.config["brightness"])
-        print("Contrast: ", self.config["contrast"])
+        # print("retrive_config():")
+        # print("Pos: ", self.config["position"])
+        # print("Brightness: ", self.config["brightness"])
+        # print("Contrast: ", self.config["contrast"])
 
     def on_exit(self):
         self.save_config()
