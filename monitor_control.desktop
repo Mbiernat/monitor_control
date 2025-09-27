@@ -1,0 +1,7 @@
+[Desktop Entry]
+Name=Monitor Control
+Comment=Monitor Control
+Exec=/home/baco/Documents/TOOLS/monitor_control/run.sh
+Terminal=false
+Type=Application
+Categories=Utility;
