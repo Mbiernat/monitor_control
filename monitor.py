@@ -10,6 +10,30 @@ class Monitor:
     current_brightness = 0
     current_contrast = 0
 
+
+    def get_brightness(self):
+        brightness = 0
+        for monitor in get_monitors():
+            with monitor:
+                brightness = monitor.get_luminance()
+
+        return brightness
+
+    def get_contrast(self):
+        contrast = 0
+        for monitor in get_monitors():
+            with monitor:
+                contrast = monitor.get_contrast()
+                
+        return contrast
+    
+    def get_settings(self):
+
+        brightness = self.get_brightness()
+        contrast = self.get_contrast()
+
+        return brightness, contrast
+
     def set_brightness(self, brightness):
         if brightness == self.current_brightness:
             return
@@ -132,6 +156,11 @@ class BrightnessContrastApp:
         self.save_button = ctk.CTkButton(self.root, text="Set all", command=self.save_settings)
         self.save_button.pack(pady=10)
 
+        # ------------------------------------------------------------
+        # Sync settings button
+        self.sync_button = ctk.CTkButton(self.root, text="Sync", command=self.sync_settings)
+        self.sync_button.pack(pady=10)
+
         # presets_frame = ctk.CTkFrame(self.root)
         # presets_frame.pack(pady=5)
 
@@ -164,9 +193,11 @@ class BrightnessContrastApp:
 
     def update_contrast_slider(self, value):
         self.contrast_value.set(round(float(value)))
+        self.contrast_slider.set(round(float(value)))
 
     def update_brightness_slider(self, value):
         self.brightness_value.set(round(float(value)))
+        self.brightness_slider.set(round(float(value)))
 
     def save_contrast(self):
         contrast = self.contrast_value.get()
@@ -185,6 +216,13 @@ class BrightnessContrastApp:
         self.config["brightness"] = brightness
         
         self.monitor.set_values(brightness, contrast)
+
+    def sync_settings(self):
+        brightness, contrast = self.monitor.get_settings()
+        self.config["brightness"] = brightness
+        self.config["contrast"] = contrast
+        self.update_brightness_slider(brightness)
+        self.update_contrast_slider(contrast)
 
     def add_preset(self):
         contrast = self.contrast_value.get()
